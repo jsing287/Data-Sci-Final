@@ -1,0 +1,83 @@
+---
+title: "Final Project"
+author: "Eric Senatore"
+date: "2022-11-22"
+output: html_document
+---
+
+```{r}
+mushroomData = read.csv("mushroom.csv", sep = ';')
+head(mushroomData)
+# table(mushroomData$class)
+# table(mushroomData$cap.shape)
+# table(mushroomData$cap.surface)
+# table(mushroomData$cap.color)
+# table(mushroomData$does.bruise.or.bleed)
+# table(mushroomData$gill.attachment)
+# table(mushroomData$gill.spacing)
+# table(mushroomData$gill.color)
+# table(mushroomData$stem.root)
+# table(mushroomData$stem.surface)
+# table(mushroomData$stem.color)
+# table(mushroomData$veil.type)
+# table(mushroomData$veil.color)
+# table(mushroomData$has.ring)
+# table(mushroomData$ring.type)
+# table(mushroomData$spore.print.color)
+# table(mushroomData$habitat)
+# table(mushroomData$season)
+```
+
+```{r}
+num_samples = dim(mushroomData)[1]
+
+sampling.rate = 0.8
+
+training = sample(1:num_samples, sampling.rate*num_samples, replace= FALSE)
+
+trainingSet = subset(mushroomData[training, ])
+
+testing = setdiff(1:num_samples,training)
+
+testingSet = subset(mushroomData[testing, ])
+
+library (rpart)
+
+decTreeModel = rpart(class~cap.diameter+cap.shape+cap.surface+cap.color+does.bruise.or.bleed+gill.attachment+gill.spacing+gill.color+stem.height+stem.width+stem.root+stem.surface+stem.color+has.ring+ring.type+spore.print.color+habitat+season,data=trainingSet)
+
+plot(decTreeModel, margin=0.1)
+text(decTreeModel)
+
+plotcp(decTreeModel)
+
+pruned_decTreeModel = prune(decTreeModel, cp=0.014)
+plot (pruned_decTreeModel, margin=0.1)
+text (pruned_decTreeModel)
+
+predictedLabels = predict(pruned_decTreeModel, testingSet, type="class")
+sizeTestSet = dim(testingSet) [1]
+error = sum(predictedLabels != testingSet$class)
+misclassification_rate = error/sizeTestSet
+```
+
+```{r}
+library (rpart)
+
+decTreeModel = rpart(class~cap.diameter+cap.shape+cap.surface+cap.color+does.bruise.or.bleed+gill.attachment+gill.spacing+gill.color+stem.height+stem.width+stem.root+stem.surface+stem.color+has.ring+ring.type+spore.print.color+habitat+season,data=trainingSet)
+
+plot(decTreeModel, margin=0.1)
+text(decTreeModel)
+
+plotcp(decTreeModel)
+
+pruned_decTreeModel = prune(decTreeModel, cp=0.014)
+plot (pruned_decTreeModel, margin=0.1)
+text (pruned_decTreeModel)
+
+predictedLabels = predict(decTreeModel, testingSet, type="class")
+sizeTestSet = dim(testingSet) [1]
+error = sum(predictedLabels != testingSet$class)
+misclassification_rate = error/sizeTestSet
+```
+
+
