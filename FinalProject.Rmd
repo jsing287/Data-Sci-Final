@@ -1,6 +1,6 @@
 ---
 title: "Final Project"
-author: "Eric Senatore"
+author: "David Esposto"
 date: "2022-11-22"
 output: html_document
 ---
@@ -8,9 +8,7 @@ output: html_document
 ```{r}
 mushroomData = read.csv("mushroom.csv", sep = ';')
 head(mushroomData)
-```
 
-```{r}
 library (rpart)
 
 AllErrors = c()
@@ -49,6 +47,7 @@ AverageErrorPruned = mean(AllErrorsPruned)
 ```
 
 ```{r}
+library(class)
 mushroomDataKNN = read.csv("mushroom.csv", sep = ';')
 
 mushroomDataKNN$cap.shape <- as.numeric(as.factor(mushroomDataKNN$cap.shape))
@@ -78,11 +77,9 @@ for(i in 1:ncol(mushroomDataKNN)){
 
 mushroomDataKNN$class = class
 
-misKNN = c(245)
+misKNN = c(300)
 
-for (i in 1:245) {
-  
-  AllErrorsKNN = c()
+for (i in 1:300) {
     
   num_samples = dim(mushroomDataKNN)[1]
   sampling.rate = 0.8
@@ -99,10 +96,11 @@ for (i in 1:245) {
   sizeTestSetKNN = dim(testingSet)[1]
   error = sum(predictedLabelsKNN != testingSet$class)
   misRateKNN=error/sizeTestSetKNN
-  AllErrorsKNN[i]=misRateKNN
+  misKNN[i-199]=misRateKNN
   
 }
-BestK = which(AllErrorsKNN == min(AllErrorsKNN))
-LowestError = mins(AllErrorsKNN)
-```
+BestK = which(misKNN == min(misKNN))
+LowestError = min(misKNN)
 
+plot(misKNN)
+```
