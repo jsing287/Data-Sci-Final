@@ -96,7 +96,7 @@ for (i in 1:300) {
   sizeTestSetKNN = dim(testingSet)[1]
   error = sum(predictedLabelsKNN != testingSet$class)
   misRateKNN=error/sizeTestSetKNN
-  misKNN[i-199]=misRateKNN
+  misKNN[i]=misRateKNN
   
 }
 BestK = which(misKNN == min(misKNN))
