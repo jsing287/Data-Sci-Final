@@ -3,7 +3,7 @@
     "path": "~/Intro to Data Science/FinalProject/Data-Sci-Final/FinalProject.Rmd",
     "project_path": "FinalProject.Rmd",
     "type": "r_markdown",
-    "hash": "544181528",
+    "hash": "3714413072",
     "contents": "",
     "dirty": false,
     "created": 1669167878578.0,
@@ -12,15 +12,15 @@
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "27,26",
-        "scrollLine": "7"
+        "cursorPosition": "74,37",
+        "scrollLine": "64"
     },
     "folds": "",
-    "lastKnownWriteTime": 1669168392,
+    "lastKnownWriteTime": 1669174414,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1669168392192,
+    "last_content_update": 1669174414850,
     "read_only": false,
     "read_only_alternatives": []
 }

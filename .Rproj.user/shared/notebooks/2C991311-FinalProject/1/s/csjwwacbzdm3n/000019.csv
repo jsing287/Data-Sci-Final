@@ -1,0 +1,2 @@
+"0","mushroomData = read.csv(""mushroom.csv"", sep = ';')"
+"0","head(mushroomData)"

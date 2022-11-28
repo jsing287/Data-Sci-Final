@@ -1,0 +1,106 @@
+---
+title: "Assignment 2"
+author: "Eric Senatore"
+date: "2022-11-21"
+output: html_document
+---
+
+#Read and normalize the data
+```{r}
+library(class)
+data = read.csv('spotifyMusic_labledSet.csv')
+head(data)
+
+data$acousticness = (data$acousticness - mean(data$acousticness))/sd(data$acousticness)
+data$danceability = (data$danceability - mean(data$danceability))/sd(data$danceability)
+data$energy = (data$energy - mean(data$energy))/sd(data$energy)
+data$instrumentalness = (data$instrumentalness - mean(data$instrumentalness))/sd(data$instrumentalness)
+data$liveness = (data$liveness - mean(data$liveness))/sd(data$liveness)
+data$loudness = (data$loudness  - mean(data$loudness ))/sd(data$loudness )
+data$speechiness = (data$speechiness - mean(data$speechiness))/sd(data$speechiness)
+data$tempo = (data$tempo - mean(data$tempo))/sd(data$tempo)
+data$valence = (data$valence - mean(data$valence))/sd(data$valence)
+```
+
+#This block of code tests k values from 1-20 and then uses the best k to predict the unlabeled data set
+```{r}
+#This will  hold the error of the each k value
+mis = c(20)
+
+#check k from 1 to 20
+for (i in 1:20) {
+  
+  #This array will hold each fold's error 
+  AllErrors = c()
+  
+  #fold is 10
+  for (fold in 1:10) {
+    
+  num_samples = dim(data)[1]
+  sampling.rate = 0.8
+  training <- sample(1:num_samples, sampling.rate * num_samples, replace=FALSE)
+  trainingSet <- subset(data[training, ])
+  testing <- setdiff(1:num_samples, training)
+  testingSet <- subset(data[testing, ])
+    
+  trainingfeatures <- subset(trainingSet, select=c(-like))
+  traininglabels <- trainingSet$like
+  testingfeatures <- subset(testingSet, select=c(-like))
+  
+  predictedLabels = knn(trainingfeatures, testingfeatures,traininglabels,k=i)
+  sizeTestSet = dim(testingSet)[1]
+  error = sum(predictedLabels != testingSet$like)
+  misRate=error/sizeTestSet
+  AllErrors[fold]=misRate
+  
+  }
+  
+  #Calculate average error, store in array for current k value
+  AverageError = mean(AllErrors)
+  mis[i] = AverageError
+  
+}
+BestK = which(mis == min(mis))
+
+#This checks for the rare occasion that two k values gives the lowest average error
+if ((length(BestK))>1){
+  BestK = BestK[1]
+}
+
+cat("We will predict the unlabeled set using k =" , BestK)
+
+dataT = read.csv('spotifyMusic_unlabledSet.csv')
+dataT <- subset(dataT, select=c(-like))
+
+dataT$acousticness = (dataT$acousticness - mean(dataT$acousticness))/sd(dataT$acousticness)
+dataT$danceability = (dataT$danceability - mean(dataT$danceability))/sd(dataT$danceability)
+dataT$energy = (dataT$energy - mean(dataT$energy))/sd(dataT$energy)
+dataT$instrumentalness = (dataT$instrumentalness - mean(dataT$instrumentalness))/sd(dataT$instrumentalness)
+dataT$liveness = (dataT$liveness - mean(dataT$liveness))/sd(dataT$liveness)
+dataT$loudness = (dataT$loudness  - mean(dataT$loudness ))/sd(dataT$loudness )
+dataT$speechiness = (dataT$speechiness - mean(dataT$speechiness))/sd(dataT$speechiness)
+dataT$tempo = (dataT$tempo - mean(dataT$tempo))/sd(dataT$tempo)
+dataT$valence = (dataT$valence - mean(dataT$valence))/sd(dataT$valence)
+
+#Run the trained knn on the new dataset using the best k from earlier
+predictions = knn(train = trainingfeatures, test = dataT, cl = traininglabels, k=BestK)
+predictions
+summary(predictions)
+```
+
+#Question 2
+```{r}
+true = read.csv('true_like.csv')
+error = (predictions != true$like)
+summary(error)
+wrong = sum(error)
+cat("My knn model made:" , wrong , " errors ")
+```
+#Question 3
+```{r}
+wrong2 = sum(predictions != true$like & true$like == ":(" )
+cat("The KNN incorrectly classified " , wrong2 , " songs as :)")
+```
+```
+
+
