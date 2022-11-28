@@ -6,6 +6,7 @@ output: html_document
 ---
 
 ```{r}
+set.seed(99)
 mushroomData = read.csv("mushroom.csv", sep = ';')
 head(mushroomData)
 
@@ -30,7 +31,7 @@ text(decTreeModel)
 
 plotcp(decTreeModel)
 
-pruned_decTreeModel = prune(decTreeModel, cp=0.022)
+pruned_decTreeModel = prune(decTreeModel, cp=0.02)
 plot (pruned_decTreeModel, margin=0.1)
 text (pruned_decTreeModel)
 
