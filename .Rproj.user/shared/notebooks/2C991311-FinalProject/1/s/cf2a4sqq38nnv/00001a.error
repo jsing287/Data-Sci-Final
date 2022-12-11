@@ -1,1 +1,0 @@
-{"frames":[{"func":"knn(trainingfeatures, testingfeatures, traininglabels, k = i)","file":"","line_number":0,"end_line_number":0,"character_number":0,"end_character_number":0}],"message":"Error in knn(trainingfeatures, testingfeatures, traininglabels, k = i) : \n  NA/NaN/Inf in foreign function call (arg 6)\n"}
