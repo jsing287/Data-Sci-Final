@@ -150,3 +150,56 @@ LowestError = min(misKNN)
 plot(misKNN)
 plot(inClass)
 ```
+
+```{r}
+#Bare cleaning and dat for SVM
+mushroomDataKNN = read.csv("mushroom.csv", sep = ';')
+mushroomDataKNN$class = ifelse(mushroomDataKNN == "e", 1, 0)
+
+mushroomDataKNN$cap.shape <- (as.factor(mushroomDataKNN$cap.shape))
+mushroomDataKNN$cap.surface <- (as.factor(mushroomDataKNN$cap.surface))
+mushroomDataKNN$cap.color <- (as.factor(mushroomDataKNN$cap.color))
+mushroomDataKNN$does.bruise.or.bleed <- (as.factor(mushroomDataKNN$does.bruise.or.bleed))
+mushroomDataKNN$gill.attachment <- (as.factor(mushroomDataKNN$gill.attachment))
+mushroomDataKNN$gill.spacing <- (as.factor(mushroomDataKNN$gill.spacing))
+mushroomDataKNN$gill.color <- (as.factor(mushroomDataKNN$gill.color))
+mushroomDataKNN$stem.root <- (as.factor(mushroomDataKNN$stem.root))
+mushroomDataKNN$stem.surface <- (as.factor(mushroomDataKNN$stem.surface))
+mushroomDataKNN$stem.color <-(as.factor(mushroomDataKNN$stem.color))
+mushroomDataKNN$veil.type <- (as.factor(mushroomDataKNN$veil.type))
+mushroomDataKNN$veil.color <- (as.factor(mushroomDataKNN$veil.color))
+mushroomDataKNN$has.ring <- (as.factor(mushroomDataKNN$has.ring))
+mushroomDataKNN$ring.type <- (as.factor(mushroomDataKNN$ring.type))
+mushroomDataKNN$spore.print.color <- (as.factor(mushroomDataKNN$spore.print.color))
+mushroomDataKNN$habitat <- (as.factor(mushroomDataKNN$habitat))
+mushroomDataKNN$season <- (as.factor(mushroomDataKNN$season))
+```
+
+
+```{r}
+
+library(e1071)
+
+num_samples = dim(mushroomDataKNN)[1]
+
+sampling.rate = 0.8
+
+trainingSVM = sample(1:num_samples, sampling.rate*num_samples, replace= FALSE)
+
+trainingSetSVM = subset(mushroomDataKNN[trainingSVM, ])
+
+testingSVM = setdiff(1:num_samples,trainingSVM)
+
+testingSetSVM = subset(mushroomDataKNN[testingSVM, ])
+
+svmModel <- svm(class~., data=trainingSetSVM, kernel="polynomial", cost = 1, scale = FALSE)
+predictedLabels <-predict(svmModel, testingSetSVM)
+
+trueLabels = as.vector(mushroomDataKNN$class)
+tab <- table(Predicted = predictedLabels, Actual=trueLabels[testingSVM])
+tab
+
+correct = (tab[1,1]+tab[2,2])/(dim(testingSetSVM))
+correct
+
+```
