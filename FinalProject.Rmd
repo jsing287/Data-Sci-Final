@@ -1,9 +1,38 @@
 ---
 title: "Final Project"
-author: "David Esposto"
-date: "2022-11-22"
+author: "David Esposto, Jasdeep Singh, Sam McDougall, Eric Senatore, Gabor Simon"
+date: "2022-12-11"
 output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
+
+***Overall Notes*** 
+Our dataset has 61069 objects with 20 features and
+one binary predictor that we are trying to classify for. This predictor
+is the edibility of the mushroom in question, in our data set it can be
+found in the class category.Each object represents a singular mushroom.
+
+For a break down of all variable names see below:
+
+cap-diameter (m): float number in cm cap-shape (n): bell=b, conical=c,
+convex=x, flat=f, sunken=s, spherical=p, others=o cap-surface (n):
+fibrous=i, grooves=g, scaly=y, smooth=s, shiny=h, leathery=l, silky=k,
+sticky=t, wrinkled=w, fleshy=e cap-color (n): brown=n, buff=b, gray=g,
+green=r, pink=p, purple=u, red=e, white=w, yellow=y, blue=l, orange=o,
+black=k does-bruise-bleed (n): bruises-or-bleeding=t,no=f
+gill-attachment (n): adnate=a, adnexed=x, decurrent=d, free=e,
+sinuate=s, pores=p, none=f, unknown=? gill-spacing (n): close=c,
+distant=d, none=f gill-color (n): see cap-color + none=f stem-height
+(m): float number in cm
+
+***Decision Tree***
+
+Here we are first setting the seed so that we can have consistent
+pruning with consistent data We are using the standard decision tree
+model that we learned in class Lastly, we set an extra parameter in the
+import of the data in order to have the csv seperated by ;
 
 ```{r}
 set.seed(99)
@@ -11,6 +40,9 @@ mushroomData = read.csv("mushroom.csv", sep = ';')
 head(mushroomData)
 
 library (rpart)
+library(rattle)
+library(rpart.plot)
+library(RColorBrewer)
 
 num_samples = dim(mushroomData)[1]
 sampling.rate = 0.1
@@ -21,20 +53,33 @@ testingSet = subset(mushroomData[testing, ])
 
 decTreeModel = rpart(class~cap.diameter+cap.shape+cap.surface+cap.color+does.bruise.or.bleed+gill.attachment+gill.spacing+gill.color+stem.height+stem.width+stem.root+stem.surface+stem.color+has.ring+ring.type+spore.print.color+habitat+season,data=trainingSet)
 
-plot(decTreeModel, margin=0.1)
-text(decTreeModel)
+fancyRpartPlot(decTreeModel, caption = NULL)
+
 
 plotcp(decTreeModel)
 
 pruned_decTreeModel = prune(decTreeModel, cp=0.02)
-plot (pruned_decTreeModel, margin=0.1)
-text (pruned_decTreeModel)
+fancyRpartPlot(pruned_decTreeModel, caption = NULL)
 
 predictedLabelsPrune = predict(pruned_decTreeModel, testingSet, type="class")
 sizeTestSet = dim(testingSet) [1]
 errorTree = sum(predictedLabelsPrune != testingSet$class)
 misclassification_rateTree = errorTree/sizeTestSet
 ```
+
+***Random Forest*** 
+After our decision tree we wanted to try a stronger
+model that enabled better predictions of our data. As a result we used a
+decision tree model that provides a more robust tree that is less prone
+to over fitting. We used the number of trees as a tuning parameter in
+the overall model as we wanted to minimize the run time complexity while
+minimizing the errors. As such we plotted the overall error rate vs the
+number of trees in our model and found that the perfect value where
+variability in our model is maximally decreased while minimizing run
+time is about 100 trees. In terms of pre-processing the data we also
+casted all categorical variables as factors in order to be able to use
+this model. This practice also sped up the model as factors are much
+faster than using straight categorical variables.
 
 ```{r}
 mushroomDataRF = read.csv("mushroom.csv", sep = ';')
@@ -84,6 +129,31 @@ IsWrongAndE = (IsE & errorRF)
 errorE = sum(IsWrongAndE)
 ```
 
+***KNN*** 
+We wanted to see what a distance based classification
+algorithm such as KNN would result in for a dataset such as this where
+we needed to predict a singular binary value. As such we chose KNN as it
+was the most robust distance based classification algorithm we could
+find. In addition even though KNN is quite slow to train with high
+dimensional datasets, we found that it was the best option as many
+others such as approximate KNN would group certain variables together.
+The downside with this type of approximate KNN is that it does a
+pre-clustering based on variables, which is uncontrollable. Our original
+hypothesis with choosing this type of distance based algorithm was to
+get all of the similar mushrooms in the same space as to be able to
+classify by the mushroom species as we know that if the mushrooms are of
+the same species they will all be either poisonous or not poisonous.
+
+In terms of tuning and preprocessing we followed the following steps:
+1.For preprocessing we casted all categorical variables into factors and
+then into numerical values to be able to use all of them 2.For the
+tuning of the model we chose K as our tuning parameter and chose a range
+of 1-300 as the our root of objects in our data set is approximately 250
+and as such we wanted to go above and below this value. 3. We chose to
+not fold our data using K fold validation as the dataset is large enough
+to encompass the entire entropy of the underlying population without the
+need for K fold. Also this would have taken a very long time.
+
 ```{r}
 library(class)
 mushroomDataKNN = read.csv("mushroom.csv", sep = ';')
@@ -115,10 +185,10 @@ for(i in 1:ncol(mushroomDataKNN)){
 
 mushroomDataKNN$class = class
 
-misKNN = c(10)
-inClass = c(10)
+misKNN = c(300)
+inClass = c(300)
 
-for (i in 1:10) {
+for (i in 1:300) {
     
   num_samples = dim(mushroomDataKNN)[1]
   sampling.rate = 0.8
@@ -146,14 +216,68 @@ BestK = which(misKNN == min(misKNN))
 LowestError = min(misKNN)
 ```
 
+Here we just wanted to see the overall errors for each k value, as well
+as the missclassification of inedible mushrooms that were classified as
+edible for each
+
 ```{r}
 plot(misKNN)
 plot(inClass)
 ```
 
-```{r}
-#Bare cleaning and dat for SVM
 
+
+***PCA and FAMD***
+
+We wanted to check for the colinearity of the different variables. We did this
+in order to understand which variables were the most distant and had the largest effect on our
+overall SVM, as to not have to run all 20 dimensions for the SVM. In order to do this
+we originally started with PCA; however, we realized that PCA would only be useful for quantitative and continuous variables.
+As a result we ended up going with FAMD (Factor analysis of mixed data) which allows for mixed data (both quantitative and categorical)
+to be compared for colinearity. As a result we found that the least linearily correlated variables were the following:
+
+'ring.type',
+'gill.attachment',
+'gill.color',
+'stem.surface',
+'stem.height'
+
+Using these three plots from the analysis below we then created our SVM by isolating for these five variables alone.
+These 5 were the most distant in the 2 dimensional colinearity report that was generated, this is our reasoning for choosing them.
+```{r}
+library(FactoMineR)
+mushroomFAMD = read.csv("mushroom.csv", sep = ';')
+
+mushroom_FAMD = FAMD(mushroomFAMD, ncp = 10, axes = c(1,2))
+
+summary(mushroom_FAMD)
+
+```
+This plot was also used as to determine where the largest drop in colinearity would arise,
+upon scaling down the dimensionality from 20 to 2 dimenions. As we can see the largest drop would be around 4
+and as a result if we could see 4 dimensions we would pick the largest outlying variables from here; however,
+the difference in drop between 4 and 2 dimensions is minimal and as a result we ended up going with our original 5 variables
+as outlined above.
+```{r}
+eig.val <- mushroom_FAMD$eig
+barplot(eig.val[, 2], 
+        names.arg = 1:nrow(eig.val), 
+        main = "Variances Explained by Dimensions (%)",
+        xlab = "Principal Dimensions",
+        ylab = "Percentage of variances",
+        col ="steelblue")
+# Add connected line segments to the plot
+lines(x = 1:nrow(eig.val), eig.val[, 2], 
+      type = "b", pch = 19, col = "red")
+```
+
+
+***SVM***
+
+Here we subsetted out the 5 variables that we pinpointed using our FAMD analysis,
+and as a result we took those variables and created dummy variables for the categorical variables that were
+amongst those.
+```{r}
 mushroomDataKNN = read.csv("mushroom.csv", sep = ';')
 mushroomDataKNN = mushroomDataKNN[c('class','ring.type', 'gill.attachment','gill.color', 'stem.surface', 'stem.height')]
 mushroomDataKNN$class = ifelse(mushroomDataKNN$class == "e", 1, 0)
@@ -164,6 +288,9 @@ mushroomDataKNN = dummy(cbind.data.frame(mushroomDataKNN), p = "all", object = N
 mushroomDataKNN$class = class
 ```
 
+We then ran our SVM model on this subset of the data printing out the overall error rate at the end of this code.
+We realized that this model was not very effective or intuitive as we were still left with 5 dimensions and trying to visualize a hyperplane in 4 dimensions
+is quite a difficult task. The error rate for this was also >25% and as a result would not be very helpful in deployment.
 
 ```{r}
 
@@ -187,46 +314,4 @@ predictedLabels <-predict(svmModel, testingSetSVM)
 sizeTestSetSVM = dim(testingSetSVM)[1]
 error = sum(predictedLabels != testingSetSVM$class)
 print(error)
-# misRateSVM=error/sizeTestSetSVM
-# 
-# inClass = sum(predictedLabelsKNN != testingSetSVM$class & testingSetSVM$class == 1 )
-# 
-# misRateSVM
-# inClass
 ```
-
-
-
-We wanted to check for the colinearity of diffe
-
--Wanted to run SVM
-- Takes wayyyy too long to do the analysis of the SVM
-- Instead we looked at an FAMD which is the same as a PCA only that it takes the mixed data
-- IE it takes both quantitative and qualititave features
-- we first tested the FAMD with 10, IE that it would scale down the dimensions to 10 from the 22 that we originally had
-- We looked at a graph of diminishing variance gains to identify where the largest drop would be in variance
-- we picked with 4 dimensions and reran the model
-```{r}
-library(FactoMineR)
-mushroomFAMD = read.csv("mushroom.csv", sep = ';')
-
-mushroom_FAMD = FAMD(mushroomFAMD, ncp = 10, axes = c(1,2))
-
-summary(mushroom_FAMD)
-
-```
-
-```{r}
-eig.val <- mushroom_FAMD$eig
-barplot(eig.val[, 2], 
-        names.arg = 1:nrow(eig.val), 
-        main = "Variances Explained by Dimensions (%)",
-        xlab = "Principal Dimensions",
-        ylab = "Percentage of variances",
-        col ="steelblue")
-# Add connected line segments to the plot
-lines(x = 1:nrow(eig.val), eig.val[, 2], 
-      type = "b", pch = 19, col = "red")
-```
-
-
